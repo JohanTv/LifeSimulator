@@ -80,15 +80,11 @@ func (board *LifeBoard) Update() {
 		}
 	}
 
-	fmt.Printf("A: %p B: %p Active: %p Inactive: %p\n", &board.gridA, &board.gridB, board.activeGrid, board.inactiveGrid)
-
 	// Swap active and inactive grids
 	if board.activeGrid == &board.gridA {
-		fmt.Println("B Now active")
 		board.activeGrid = &board.gridB
 		board.inactiveGrid = &board.gridA
 	} else {
-		fmt.Println("A Now active")
 		board.activeGrid = &board.gridA
 		board.inactiveGrid = &board.gridB
 	}

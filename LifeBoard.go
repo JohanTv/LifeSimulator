@@ -9,7 +9,9 @@ import (
 
 // LifeBoard - Grid for game of life slice of bool slices
 type LifeBoard struct {
-	grid             [][]uint8
+	gridA, gridB             [][]uint8
+	activeGrid, inactiveGrid *[][]uint8
+
 	numCols, numRows int
 }
 
@@ -18,10 +20,15 @@ func NewLifeBoard(numRows int, numCols int) *LifeBoard {
 	board := LifeBoard{}
 	board.numCols = numCols
 	board.numRows = numRows
-	board.grid = make([][]uint8, numRows)
+	board.gridA = make([][]uint8, numRows)
 	for i := 0; i < numRows; i++ {
-		board.grid[i] = make([]uint8, numCols)
+		board.gridA[i] = make([]uint8, numCols)
 	}
+	board.gridB = make([][]uint8, numRows)
+	for i := 0; i < numRows; i++ {
+		board.gridB[i] = make([]uint8, numCols)
+	}
+	board.activeGrid = &board.gridA
 	return &board
 }
 
@@ -36,20 +43,21 @@ func (board LifeBoard) Run(i int) {
 // BigBang randomizes each cell of the life board
 func (board LifeBoard) BigBang() {
 	// for each set to random zero or 1
-	for y := 0; y < len(board.grid); y++ {
-		for x := 0; x < len(board.grid[0]); x++ {
-			board.grid[y][x] = uint8(rand.Intn(2))
+	for y := 0; y < len(*board.activeGrid); y++ {
+		for x := 0; x < len((*board.activeGrid)[0]); x++ {
+			(*board.activeGrid)[y][x] = uint8(rand.Intn(2))
 		}
 	}
 }
 
 // Update board one cycle
 func (board LifeBoard) Update() {
-	// create new board to represent new state
-	// for each cell
+
+	// for each cell of current
+
 	// count neighbors
 
-	//
+	// change state
 
 	// write new state to new board
 
@@ -63,28 +71,27 @@ func (board LifeBoard) Update() {
 func (board LifeBoard) GetNeighborCount(y int, x int) int {
 
 	var neighborCount uint8
-	neighborCount = 0
 
 	if x > 0 && y > 0 { // Top left
-		neighborCount += board.grid[y-1][x-1]
+		neighborCount += (*board.activeGrid)[y-1][x-1]
 	}
 	if x > 0 { // Left
-		neighborCount += board.grid[y][x-1]
+		neighborCount += (*board.activeGrid)[y][x-1]
 	}
 	if x > 0 && y < (board.numRows-1) { // Bottom left
-		neighborCount += board.grid[y+1][x-1]
+		neighborCount += (*board.activeGrid)[y+1][x-1]
 	}
 	if y < (board.numRows - 1) { // Bottom
-		neighborCount += board.grid[y+1][x]
+		neighborCount += (*board.activeGrid)[y+1][x]
 	}
 	if x < (board.numCols-1) && y < (board.numRows-1) { // Bottom Right
-		neighborCount += board.grid[y+1][x+1]
+		neighborCount += (*board.activeGrid)[y+1][x+1]
 	}
 	if x < (board.numCols - 1) { // Right
-		neighborCount += board.grid[y][x+1]
+		neighborCount += (*board.activeGrid)[y][x+1]
 	}
 	if x < (board.numCols-1) && y > 0 { // Top right
-		neighborCount += board.grid[y-1][x+1]
+		neighborCount += (*board.activeGrid)[y-1][x+1]
 	}
 
 	return int(neighborCount)
@@ -109,7 +116,7 @@ func (board LifeBoard) Save(filename string) {
 	// Write the grid to file
 	for y := 0; y < numGridRows; y++ {
 		for x := 0; x < numGridCols; x++ {
-			myfile.WriteString(strconv.Itoa(int(board.grid[y][x])))
+			myfile.WriteString(strconv.Itoa(int((*board.activeGrid)[y][x])))
 		}
 		myfile.WriteString("\n")
 	}

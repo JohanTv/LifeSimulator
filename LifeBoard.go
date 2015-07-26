@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"time"
 )
 
 // LifeBoard - Grid for game of life slice of bool slices
@@ -29,11 +30,12 @@ func NewLifeBoard(numRows int, numCols int) *LifeBoard {
 		board.gridB[i] = make([]uint8, numCols)
 	}
 	board.activeGrid = &board.gridA
+	board.inactiveGrid = &board.gridB
 	return &board
 }
 
 // Run i number of iterations
-func (board LifeBoard) Run(i int) {
+func (board *LifeBoard) Run(i int) {
 	board.BigBang()
 	for x := 0; x <= i; x++ {
 		board.Update()
@@ -42,28 +44,54 @@ func (board LifeBoard) Run(i int) {
 
 // BigBang randomizes each cell of the life board
 func (board LifeBoard) BigBang() {
+	rand.Seed(time.Now().UTC().UnixNano())
 	// for each set to random zero or 1
-	for y := 0; y < len(*board.activeGrid); y++ {
-		for x := 0; x < len((*board.activeGrid)[0]); x++ {
+	for y := 0; y < board.numRows; y++ {
+		for x := 0; x < board.numCols; x++ {
 			(*board.activeGrid)[y][x] = uint8(rand.Intn(2))
 		}
 	}
 }
 
 // Update board one cycle
-func (board LifeBoard) Update() {
+func (board *LifeBoard) Update() {
 
-	// for each cell of current
+	var neighborCount int
 
-	// count neighbors
+	// Determine fate of cell
+	for y := 0; y < board.numRows; y++ {
+		for x := 0; x < board.numCols; x++ {
+			neighborCount = board.GetNeighborCount(y, x)
+			if (*board.activeGrid)[y][x] == 1 { // Alive
+				if neighborCount < 2 {
+					(*board.inactiveGrid)[y][x] = 0
+				} else if neighborCount == 2 || neighborCount == 3 {
+					(*board.inactiveGrid)[y][x] = 1
+				} else if neighborCount > 3 {
+					(*board.inactiveGrid)[y][x] = 0
+				}
+			} else { // Dead
+				if neighborCount == 3 {
+					(*board.inactiveGrid)[y][x] = 1
+				} else {
+					(*board.inactiveGrid)[y][x] = 0
+				}
+			}
+		}
+	}
 
-	// change state
+	fmt.Printf("A: %p B: %p Active: %p Inactive: %p\n", &board.gridA, &board.gridB, board.activeGrid, board.inactiveGrid)
 
-	// write new state to new board
-
-	// Copy new state to original board and discard new board
-	// *** OR ***
-	// Use new board, drop old one
+	// Swap active and inactive grids
+	if board.activeGrid == &board.gridA {
+		fmt.Println("B Now active")
+		board.activeGrid = &board.gridB
+		board.inactiveGrid = &board.gridA
+	} else {
+		fmt.Println("A Now active")
+		board.activeGrid = &board.gridA
+		board.inactiveGrid = &board.gridB
+	}
 
 }
 
@@ -100,7 +128,7 @@ func (board LifeBoard) GetNeighborCount(y int, x int) int {
 // Save board to file
 func (board LifeBoard) Save(filename string) {
 	// Load the file
-	myfile, err := os.OpenFile(filename, os.O_WRONLY, 0755)
+	myfile, err := os.OpenFile(filename, os.O_CREATE, 0755)
 	if err != nil {
 		if os.IsNotExist(err) { // File doesn't exist to open
 			myfile, err = os.Create(filename)
@@ -118,7 +146,7 @@ func (board LifeBoard) Save(filename string) {
 		for x := 0; x < numGridCols; x++ {
 			myfile.WriteString(strconv.Itoa(int((*board.activeGrid)[y][x])))
 		}
-		myfile.WriteString("\n")
+		myfile.WriteString("\r\n")
 	}
 }
 

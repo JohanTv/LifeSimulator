@@ -3,12 +3,14 @@ package main
 import "fmt"
 
 const filename string = "lifegrid.dat"
-const numRuns int = 10000
-const numGridRows int = 1000
-const numGridCols int = 1000
+
+// @TODO Accept these are command line arguments
+const numRuns int = 1000
+const numGridRows int = 224
+const numGridCols int = 222
 
 func main() {
-	fmt.Println("Initializing Game of Life")
+	fmt.Println("Initializing and running Game of Life")
 
 	board := NewLifeBoard(numGridRows, numGridCols)
 	board.Run(numRuns)
